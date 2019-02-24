@@ -1,0 +1,15 @@
+
+# https://ddewaele.github.io/running-jekyll-in-docker/
+
+docker run --rm --volume="$PWD:/srv/jekyll" --volume="$PWD/vendor/bundle:/usr/local/bundle" -it jekyll/jekyll:3.8 jekyll build
+
+docker run --rm --name myblog --volume="$PWD:/srv/jekyll" --volume="$PWD/vendor/bundle:/usr/local/bundle" -p 4000:4000 -it jekyll/jekyll:3.8 jekyll serve --watch --drafts
+
+
+
+https://mmistakes.github.io/minimal-mistakes/docs/docs-2-2/#installation
+
+
+
+
+https://jekyllrb.com/docs/configuration/options/
