@@ -10,7 +10,7 @@ In this post I'm presenting a step-by-step guide on how to develop a StreamSets 
 
 Some of the problems encountered in the tested StreamSets 3.7.2 version are also addressed.
 
-{% include figure image_path="/assets/images/streamsets/pipeline.png" %}
+{% include figure image_path="/assets/images/pipeline.png" %}
 
 # Pipeline configuration
 
