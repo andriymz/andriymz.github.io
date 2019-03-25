@@ -2,6 +2,7 @@
 title:  "Dealing with Maven conflicts"
 excerpt: "In this post I'm explaining the main concepts behind Maven dependency management, conflict detection and its resolution."
 classes: wide
+published: false
 categories: [software-development]
 tags: [maven, mvn, shading]
 ---
