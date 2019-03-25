@@ -16,3 +16,8 @@ nav_id:
         url: /categories/certifications
       - title: "StreamSets"
         url: /categories/streamsets
+
+  - title: Security
+    children:
+      - title: "Kerberos"
+        url: /categories/kerberos
