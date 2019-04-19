@@ -1,13 +1,15 @@
 ---
 title:  "Authentication using Kerberos"
-excerpt: "In this post I'm detailedly explaining how to authenticate with Kerberos with both JAAS configuration and UserGroupInformation class. Authentication options offered by UserGroupInformation are also addressed, such as logging-in from ticket cache or keytab, TGT renewal, impersonation with proxy-users and delegation tokens."
+excerpt: "In this post you will see how Kerberos authentication with pure *Java Authentication and Authorization Service (JAAS)* works and how to use the *UserGroupInformation* class for each of its authentication features, such as logging-in from ticket cache or keytab, TGT renewal, impersonation with proxy-users and delegation tokens."
 classes: wide
 categories: [kerberos]
 toc: true
-tags: [hadoop security, hadoop, security, java, jaas ]
+tags: [hadoop security, hadoop, security, java, jaas]
 ---
  
- In this post I'm detailedly explaining how to authenticate with Kerberos with both *Java Authentication and Authorization Service (JAAS)* and UserGroupInformation class. All the authentication options offered by UserGroupInformation are also addressed, such as logging-in from ticket cache or keytab, TGT renewal, impersonation with proxy-users and delegation tokens.
+In this post you will see how Kerberos authentication with pure *Java Authentication and Authorization Service (JAAS)* works and how to use the *UserGroupInformation* class for each of its authentication features, such as logging-in from ticket cache or keytab, TGT renewal, impersonation with proxy-users and delegation tokens.
+ 
+I assume that you are already familiar with Kerberos components and terms, such as *Key Distribution Center (KDC)*, *Ticket-Granting Ticket (TGT)*, *Ticket-Granting Service (TGS)*, etc.
  
 # Authenticate with JAAS configuration and a keytab
 
@@ -93,7 +95,7 @@ Then in your application you should first create a LoginContext instance, by pro
 
 The provided [TextCallbackHandler](https://docs.oracle.com/javase/8/docs/jre/api/security/jaas/spec/com/sun/security/auth/callback/TextCallbackHandler.html) simply prompts and reads from the command line for answers to authentication questions.
 
-Once the LoginContext instance is created we call its *login* method, which calls methods in the Krb5LoginModule to perform the login and authentication. The Krb5LoginModule will utilize the TextCallbackHandler to obtain the user name and password. Then the Krb5LoginModule will use this information to get the user credentials from the Kerberos KDC
+Once the LoginContext instance is created we call its *login* method, which calls methods in the Krb5LoginModule to perform the login and authentication. The Krb5LoginModule will utilize the TextCallbackHandler to obtain the user name and password. Then the Krb5LoginModule will use this information to get the user credentials from the Kerberos KDC.
 
 The Krb5LoginModule populates the Subject contained within the LoginContext class with a Kerberos Principal representing the user and the user's credentials (TGT) in Subject's private credential set, as mentioned previously.
 
@@ -118,23 +120,17 @@ Object returnObject = Subject.doAs(subject, new PrivilegedExceptionAction<Object
 });
 ```
 
-## Long-running applications
-
-Once a Subject is authenticated, its stored TGT will not be automatically renewed, which means you should manually implement a ticket renewal logic.
-
-Even though there is *renewTGT* option in Krb5LoginModule, it is only used together with the *useTicketCache* option and decides whether or not the TGT should be renewed after it is acquired from the ticket cache, having nothing to do with periodic TGT renewal.
-
 # Authenticate using the UserGroupInformation class
 
 [UserGroupInformation](http://hadoop.apache.org/docs/r2.8.3/api/org/apache/hadoop/security/UserGroupInformation.html) class, packaged with *hadoop-common* library, wraps around a JAAS Subject and provides all the required methods to manage Kerberos-based authentications.
 
 This class is of special interest, since it allows the developers not to worry about the JAAS configuration and hides the underlying implementation complexity using the aforementioned LoginContext, Subject, Principal, etc. classes.
 
-A developer can completely handle all the Kerberos authentication options using the UserGroupInformation class to access secured services, which are covered one by one in the following sections.
+A developer can completely handle all the Kerberos authentication options using just the UserGroupInformation class to access secured services, which are covered one by one in the following sections.
 
 ## Local ticket cache
 
-To test the authentication using an existing TGT we need to request it and store in a custom cache location, using the `kinit` command below:
+To test the authentication using an existing TGT you need to first request and store it in a custom cache location, using the `kinit` command below:
 
 ```java
 [andriymz@fedora27 ~]$ kinit xpand@XPAND.COM -kt xpand.keytab -c /tmp/cache
@@ -147,7 +143,7 @@ Valid starting       Expires              Service principal
         renew until 31-03-2019 19:04:30 
 ```
 
-In our application we need to create an instance of UserGroupInformation class by calling its `getUGIFromTicketCache` method, which expects the TGT cache location and its Kerberos principal as parameters.
+Then, in your application you need to create an instance of UserGroupInformation class by calling its `getUGIFromTicketCache` method, which expects the TGT cache location and its Kerberos principal as parameters.
 
 ```java
 UserGroupInformation ugi = UserGroupInformation.getUGIFromTicketCache("/tmp/cache", "xpand@XPAND.COM");
@@ -156,7 +152,7 @@ UserGroupInformation instance contains the authenticated Subject and User object
 
 {% include figure image_path="/assets/images/kerberos/ugi_1.png" %}
 
-The User class, which implements the previously introduced Principal interface, contains basic information about the logged-in entity, such as Kerberos principal and the corresponding *authentication method*. 
+The User class, which implements the previously introduced Principal interface, contains basic information about the logged-in entity, such as Kerberos principal and the corresponding authentication method. 
 
 {% include figure image_path="/assets/images/kerberos/ugi_2.png" %}
 
@@ -190,7 +186,7 @@ for(FileStatus fStat: fsStatus){
 
 ## Keytab 
 
-The previous way of authenticating is fine for short-living applications where a client previously acquired a TGT, however since the TGT is only valid for 24h (by default) and can be renewed up to 7 days (by default) after it was issued, an alternative keytab variant of authentication should be used to ensure that the TGT is renewed accordingly and the application can access secured Hadoop services.
+The previous way of authenticating is fine for short-living applications where a client previously acquired a TGT, however since the TGT is only valid for 24h (by default) and can be renewed up to 7 days (by default) after it was issued, an alternative keytab variant of authentication should be used to ensure that the TGT is renewed accordingly and the application can continue to access secured Hadoop services.
 
 There are two methods allowing to login using a keytab: `loginUserFromKeytab` and `loginUserFromKeytabAndReturnUGI`. The mais difference between them is that the former method returns nothing and sets the currently logged-in user at the UserGroupInformation level, which can be then accessed using the `getCurrentUser` method, and the latter just logs-in without affecting the currently logged-in user.
 
@@ -273,7 +269,7 @@ The control of which users are capable of impersonating others is done by specif
 </property>
 ```
 
-## Delegation tokens
+## Delegation Tokens
 
 The last topic I would like to cover are Hadoop Delegation Tokens. Delegation Tokens were introduced as an authentication method to complement Kerberos authentication, instead of solely relying on TGTs and service tickets. To fully understand how delegation tokens work you can check this great [blog post](https://blog.cloudera.com/blog/2017/12/hadoop-delegation-tokens-explained/), but the main point is that a client (distributed job submitter) can request a Delegation Token from a secured service (e.g. HDFS) and pass it to the workers, which can authenticate as, and run jobs on behalf of, the client.
  
@@ -283,7 +279,7 @@ Delegation Tokens eliminate the need to distribute a keytab over the network, wh
 
 ### Request a HDFS Delegation Token
 
-HDFS Delegation Token can be obtained by calling the [FileSystem](https://hadoop.apache.org/docs/r2.8.2/api/org/apache/hadoop/fs/FileSystem.html)'s *addDelegationTokens* method. This method receives the user allowed to renew the delegation tokens and the Credentials object in which the obtained tokens are added. The Delegation Tokens can only obtained within Kerberos authenticated context, *i.e.* when UserGroupInformation's authentication method is *KERBEROS*.
+HDFS Delegation Token can be obtained by calling the [FileSystem](https://hadoop.apache.org/docs/r2.8.2/api/org/apache/hadoop/fs/FileSystem.html)'s *addDelegationTokens* method. This method receives the user allowed to renew the delegation tokens and the Credentials object in which the obtained tokens are added. The Delegation Tokens can only be obtained within Kerberos authenticated context, *i.e.* when UserGroupInformation's authentication method is *KERBEROS*.
 
 ```java
 Configuration conf = new Configuration();
@@ -311,7 +307,7 @@ Credentials contain a collection of tokens implementing the [Token](https://hado
 
 {% include figure image_path="/assets/images/kerberos/token_1.png" %}
 
-It is also possible to get the underlying class implementing the Token interface by calling its *decodeIdentifier* method. In our example our HDFS Delegation Token is represented by the [DelegationTokenIdentifier](https://hadoop.apache.org/docs/current/hadoop-mapreduce-client/hadoop-mapreduce-client-core/apidocs/org/apache/hadoop/mapreduce/security/token/delegation/DelegationTokenIdentifier.html) class containing all the token details:
+It is also possible to get the underlying class implementing the Token interface by calling its *decodeIdentifier* method. In this example the HDFS Delegation Token is represented by the [DelegationTokenIdentifier](https://hadoop.apache.org/docs/current/hadoop-mapreduce-client/hadoop-mapreduce-client-core/apidocs/org/apache/hadoop/mapreduce/security/token/delegation/DelegationTokenIdentifier.html) class containing all the token details:
 
 {% include figure image_path="/assets/images/kerberos/token_2.png" %}
 
@@ -339,7 +335,7 @@ Credentials recoveredCredentials = new Credentials();
 recoveredCredentials.readTokenStorageStream(dis);
 ```
 
-You can also store the Credentials to HDFS by running the following code (in secure Kerberos Context):
+You can also store the Credentials to HDFS by running the following code, of course in a secure Kerberos context:
 
 ```java
 Configuration conf = new Configuration();
@@ -355,12 +351,12 @@ credentials.writeTokenStorageFile(credentialsCachePath, conf);
 Credentials recoveredCredentials2 = Credentials.readTokenStorageFile(credentialsCachePath, conf);
 ```
 
-Spark actually handles the credential delegation this way. Application Master periodically requests Delegation Tokens from HDFS, Hive and HBase services, and stores the Credential object containing them to HDFS. Then each Executor reads the fresh Credentials from HDFS and updates its UserGroupInformation. This allows Spark to work against a secured cluster where only the Client and the Application Master have Kerberos credentials.
+Spark actually handles the credential delegation this way. Application Master periodically requests Delegation Tokens from HDFS, Hive and HBase services, and stores the Credential object containing them to HDFS. Then each Executor reads the fresh Credentials from HDFS and updates its UserGroupInformation. This allows Spark to work against a secured cluster where only the Client and the Application Master have Kerberos credentials. All those details are explained in [How Spark Uses Kerberos Authentication](/kerberos/how-spark-uses-kerberos-authentication) post.
 
 
 ### Authenticate using Delegation Tokens
 
-Once we have a Credentials object we can update our UserGroupInformation with the Delegation Tokens contained in it. This can be done with *addCredentials* or *addToken* methods, depending if you want to add all the tokens at once or only specific ones.
+Once you have a Credentials object you can update the UserGroupInformation with the Delegation Tokens contained in it. This can be done with *addCredentials* or *addToken* methods, depending if you want to add all the tokens at once or only specific ones.
 
 By executing the code below you will be able to access the HDFS service because HDFS Delegation Token is added to the created UserGroupInformation, not requiring any login from keytab or ticket cache.  
 
@@ -394,9 +390,8 @@ for(FileStatus fStat: fsStatus){
 } 
 ```
 
-In HDFS Audit logs we can confirm that the originated *listStatus* request was performed under *xpand@XPAND.COM* principal and *TOKEN* authentication method.
+In HDFS Audit logs you can confirm that the originated *listStatus* request was performed under *xpand@XPAND.COM* principal and *TOKEN* authentication method.
 
 ```text
 INFO FSNamesystem.audit: allowed=true   ugi=xpand@XPAND.COM (auth:TOKEN)        ip=/148.63.81.239       cmd=listStatus  src=/user/xpand dst=null        perm=null       proto=rpc
 ```
-
