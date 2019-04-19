@@ -1,14 +1,13 @@
 ---
 title:  "Processing Oracle CDC with StreamSets"
-excerpt: "In this post I'm presenting a step-by-step guide on how to process change data capture (CDC) events with StreamSets, using it's Oracle CDC Client and delivering to CRUD and non-CRUD destinations."
+excerpt: "A step-by-step guide on how to process change data capture (CDC) events with StreamSets, using its Oracle CDC Client and delivering to CRUD and non-CRUD destinations."
 classes: wide
 categories: [streamsets]
 toc: true
-tags: [tutorial, cdc, oracle]
+tags: [cdc, oracle]
 ---
 
-In this post I'm presenting a step-by-step guide on how to process [change data capture (CDC)](https://en.wikipedia.org/wiki/Change_data_capture) events with StreamSets, using it's [Oracle CDC Client](https://streamsets.com/documentation/datacollector/latest/help/datacollector/UserGuide/Origins/OracleCDC.html) and delivering to CRUD and non-CRUD destinations.
-
+This post presents a step-by-step guide on how to process [change data capture (CDC)](https://en.wikipedia.org/wiki/Change_data_capture) events with StreamSets, using it's [Oracle CDC Client](https://streamsets.com/documentation/datacollector/latest/help/datacollector/UserGuide/Origins/OracleCDC.html) and delivering to CRUD and non-CRUD destinations.
 
 Oracle CDC Client processes CDC information provided by the [Oracle LogMiner](https://docs.oracle.com/cd/B19306_01/server.102/b14215/logminer.htm), which is a part of Oracle Databases and enables applications to query online and archived redo log files containing the history of activity on a database. You can use this origin to perform a real-time database replication, by simply using CRUD-enabled destinations such as Kudu. If you need to propagate the changes to a non-CRUD destination for further processing, an [Expression Evaluator](https://streamsets.com/documentation/datacollector/3.7.2/help/datacollector/UserGuide/Processors/Expression.html) processor is required, as we will soon see.
 
@@ -66,7 +65,7 @@ Note that we also allowed our `streamsets` user to perform `select` operations o
 
 In `Oracle CDC` configuration tab shown above we need to specify the following parameters: 
 
-**1 -** Source table `Schema`and `Table Name Pattern` (with a SQL-like syntax), on which we previously set our privileges.
+**1 -** Source table `Schema`and `Table Name Pattern` (with a SQL-like syntax).
 
 **2 -** Starting processing point with the `Initial Change` parameter. It has three possible values:
 * *From the latest change* - Process all changes that occur after you start the pipeline.

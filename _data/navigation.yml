@@ -14,6 +14,8 @@ nav_id:
     children:
       - title: "Certifications"
         url: /categories/certifications
+      - title: "Spark"
+        url: /categories/spark/
       - title: "StreamSets"
         url: /categories/streamsets
 

@@ -2,9 +2,9 @@
 title:  "How Spark Uses Kerberos Authentication"
 excerpt: "Have you ever wondered how Spark uses Kerberos authentication? How and when the provided through the spark-submit *--principal* and *--keytab* options are used? This post answers those questions and explains all the magic that happens 'under the hood' when you submit your long-running applications."
 classes: wide
-categories: [kerberos]
+categories: [spark]
 toc: true
-tags: [spark, hadoop security, hadoop, security]
+tags: [kerberos, hadoop security, security]
 ---
 
 Have you ever wondered how Spark uses Kerberos authentication? How and when the provided through the spark-submit `--principal` and `--keytab` options are used? This post answers those questions and explains all the magic that happens "under the hood" when you submit your long-running applications.
