@@ -21,3 +21,8 @@ nav_id:
     children:
       - title: "Kerberos"
         url: /categories/kerberos
+
+  - title: Software Development
+    children:
+    - title: "Code Quality"
+      url: /categories/code-quality/
