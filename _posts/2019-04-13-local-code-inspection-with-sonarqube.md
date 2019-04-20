@@ -2,13 +2,15 @@
 title:  "Local Code Inspection with SonarQube"
 excerpt: "With this quick tutorial, you'll be able to inspect your code, written in both Scala or Java, locally with SonarQube running in a Docker container."
 classes: wide
+toc: true
 categories: [code-quality]
 tags: [code inspection, sonarqube]
 ---
 
 With this quick tutorial, you'll be able to inspect your code, written in both Scala or Java, locally with [SonarQube](https://www.sonarqube.org) running in a Docker container.
 
-> "SonarQube is an open-source platform developed by SonarSource for continuous inspection of code quality to perform automatic reviews with static analysis of code to detect bugs, code smells, and security vulnerabilities on 20+ programming languages. SonarQube offers reports on duplicated code, coding standards, unit tests, code coverage, code complexity, comments, bugs, and security vulnerabilities." - Wiki
+> SonarQube is an open-source platform developed by SonarSource for continuous inspection of code quality to perform automatic reviews with static analysis of code to detect bugs, code smells, and security vulnerabilities on 20+ programming languages. SonarQube offers reports on duplicated code, coding standards, unit tests, code coverage, code complexity, comments, bugs, and security vulnerabilities.
+> --Wiki
 
 # SonarQube Docker container
 
