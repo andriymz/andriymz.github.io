@@ -174,7 +174,7 @@ After packaging the processor implementation in a JAR, you can configure a pipel
 
 **2 -** Click on Spark Evaluator and in `General` tab choose the `Stage Library` compatible with our `Cluster Yarn Streaming` execution mode (an error pops-up if you choose a non-compatible library) and if possible which matches the Spark 2 version installed in our cluster.
 
-{% include figure image_path="/assets/images/streamsets/config_spark_executor.png" %} 
+{% include figure image_path="/assets/images/streamsets/custom_spark_evaluator/config_1.png" %} 
 
 
 **3 -** Add the transformer implementing JAR to the External Libraries.
@@ -185,15 +185,15 @@ Unfortunately, the tested 3.7.2 version of StreamSets has a known bug which does
 
 The library can still be uploaded using the `Package Manager`, by choosing the same `Stage Library` and providing the implementation JAR, see [Install External Libraries](https://streamsets.com/documentation/datacollector/latest/help/datacollector/UserGuide/Configuration/ExternalLibs.html).
 
-{% include figure image_path="/assets/images/streamsets/install_external_lib.png" %} 
+{% include figure image_path="/assets/images/streamsets/custom_spark_evaluator/install_external_lib.png" %} 
 
 After uploading the JAR the Data Collector should be restarted. Another problem I noticed is that the restart is not performed by clicking on Restart Data Collector. The Data Collector instance stops and is not started, until you start it manually.
 
-{% include figure image_path="/assets/images/streamsets/installed_external_lib_restart.png" %} 
+{% include figure image_path="/assets/images/streamsets/custom_spark_evaluator/installed_external_lib_restart.png" %} 
 
 Removing a previously uploaded JAR also seems not possible because the checkbox seems not be working as well (ugh!), but uploading a JAR with the same name replaces the existing one.
 
-{% include figure image_path="/assets/images/streamsets/installed_external_lib.png" %} 
+{% include figure image_path="/assets/images/streamsets/custom_spark_evaluator/installed_external_lib.png" %} 
 
 Additionally, it is also possible to directly replace the JAR in its directory. Removing the library also works as workaround, since it is correctly reflected in the UI.
 
