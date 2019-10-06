@@ -1,6 +1,7 @@
 ---
 title:  "Solving Slow Excel Generation using Apache POI"
 excerpt: "Comparing standard and memory optimized Excel generations using Apache POI library"
+category: [misc]
 classes: wide
 ---
 
@@ -133,8 +134,6 @@ Elapsed 235439 millis for 1048575 rows
 In terms of the used memory, [Java VisualVM](https://visualvm.github.io) shows that the maximum Heap size of 2GB was enough to generate all the Excel workbooks. Keep in mind that these tests represent the worst case scenario, where before constructing the workbook we already have a grid (array of arrays) of allocated on the Heap objects, where each object contains the cell value. An optimized implementation using iterators (if possible), that fetches each row from the source only when required to populate the workbook, will have a very low memory footprint. This, combined with the sliding-window based workbook implementation will result in a fast and light Excel generation.
 
 {% include figure image_path="/assets/images/poi/jvisualvm.png" %}
-
-![](../../../Notes/Attachments/2019-10-06-14-55-45.png)
 
 ## Code
 
