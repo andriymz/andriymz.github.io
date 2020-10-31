@@ -16,7 +16,7 @@ minimal_mistakes_skin    : "default" # "air", "aqua", "contrast", "dark", "dirt"
 
 # Site Settings
 locale                   : "en-US"
-title                    : "Techie Shares"
+title                    : ""
 title_separator          : "|"
 name                     : "Andriy Zabolotnyy"
 description              : # Description
@@ -107,8 +107,8 @@ analytics:
 # Site Author
 author:
   name             : "Andriy Zabolotnyy"
-  avatar           : "/assets/images/me.png" # path of avatar image, e.g. "/assets/images/bio-photo.jpg"
-  bio              : "Big Data Engineer, Fitness & Nutrition enthusiast."
+  avatar           : "/assets/images/me.jpg" # path of avatar image, e.g. "/assets/images/bio-photo.jpg"
+  bio              : "Software & Data Engineer"
   location         : "Lisbon, Portugal"
   email            :
   links:

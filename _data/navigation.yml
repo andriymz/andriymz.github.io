@@ -10,7 +10,7 @@ main:
     url: /tags/
 
 nav_id:
-  - title: Big Data
+  - title: Data
     children:
       - title: "Certifications"
         url: /categories/certifications
@@ -23,8 +23,3 @@ nav_id:
     children:
       - title: "Kerberos"
         url: /categories/kerberos
-
-  - title: Software Development
-    children:
-    - title: "Code Quality"
-      url: /categories/code-quality/

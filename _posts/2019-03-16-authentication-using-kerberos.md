@@ -4,7 +4,8 @@ excerpt: "In this post you will see how Kerberos authentication with pure *Java 
 classes: wide
 categories: [kerberos]
 toc: true
-tags: [hadoop security, hadoop, security, java, jaas]
+tags: [security, jaas]
+author_profile: true
 ---
  
 In this post you will see how Kerberos authentication with pure *Java Authentication and Authorization Service (JAAS)* works and how to use the *UserGroupInformation* class for each of its authentication features, such as logging-in from ticket cache or keytab, TGT renewal, impersonation with proxy-users and delegation tokens.
