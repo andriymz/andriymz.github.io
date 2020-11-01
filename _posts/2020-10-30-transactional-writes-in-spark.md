@@ -15,19 +15,24 @@ Because Spark executes an application in a distributed fashion, it is impossible
 
 To overcome this Spark has a concept of *commit protocol*, a mechanism that knows how to write partial results and deal with success or failure of the write operation.
 
-The *commit protocol* can be configured with `spark.sql.sources.commitProtocolClass` and by default points to the [SQLHadoopMapReduceCommitProtocol](https://github.com/apache/spark/blob/master/sql/core/src/main/scala/org/apache/spark/sql/execution/datasources/SQLHadoopMapReduceCommitProtocol.scala) implementing class.
+The *commit protocol* can be configured with `spark.sql.sources.commitProtocolClass` and by default points to the [SQLHadoopMapReduceCommitProtocol](https://github.com/apache/spark/blob/master/sql/core/src/main/scala/org/apache/spark/sql/execution/datasources/SQLHadoopMapReduceCommitProtocol.scala) implementing class, a subclass of [HadoopMapReduceCommitProtocol](https://github.com/apache/spark/blob/master/core/src/main/scala/org/apache/spark/internal/io/HadoopMapReduceCommitProtocol.scala#L140).
 
-By default, Spark creates a temporary directory and writes all the task files there. Then, it moves those files into final destination, deletes the temporary directory and creates the `_SUCCESS` file to mark the operation as successful, if `mapreduce.fileoutputcommitter.marksuccessfuljobs` is enabled. You can check more details of this process [here](https://www.waitingforcode.com/apache-spark-sql/apache-spark-success-anatomy/read). 
+There are two versions of this commit algorithm, configured as `1` or `2` on `spark.hadoop.mapreduce.fileoutputcommitter.algorithm.version`.
+In version 1 Spark creates a temporary directory and writes all the staging output (task) files there. Then, at the end, when all tasks compete, Spark Driver moves those files from temporary directory to the final destination, deletes the temporary directory and creates the `_SUCCESS` file to mark the operation as successful. You can check more details of this process [here](https://www.waitingforcode.com/apache-spark-sql/apache-spark-success-anatomy/read). 
 
-The problem is that this process is not actually "transactional", because if the job is aborted some of the partition files might have already been written to the final destination. This means that the `_SUCCESS` file serves basically as an indicator whether or not the consuming entities should read those files or not.
+The problem of version 1 is that for many output files, Driver may take a long time in the final step. Version 2 of *commit protocol* solves this slowness by writing directly the task result files to the final destination, speeding up the commit process. However, if the job is aborted it will leave behind partial task result files in the final destination. 
+
+Spark [supports](https://issues.apache.org/jira/browse/SPARK-20107) *commit protocol* version configuration since its 2.2.0 version, and at the time of this writing Spark's latest 3.0.1 version has a default value for it depending on running environment (Hadoop version).
+
+{% include figure image_path="/assets/images/spark/transactional_writes/spark_protocol_version_conf.png" %}
 
 ## Transactional Writes on Databricks
 
-Spark's default *commit protocol* is fine for HDFS, because the failure window of seeing partial results is small, due to the nature of HDFS moves. However, it is not suitable for cloud native setups, e.g writing to Amazon S3.
+As we previously saw, Spark's default *commit protocol* version 1 should be used for safety (no partial results) and version 2 for performance. However, if we opt for data safety version 1 is not suitable for cloud native setups, e.g writing to Amazon S3, due to differences cloud object stores have from real filesystems, as explained in [Spark's cloud integration guide](https://github.com/apache/spark/blob/32a0451376ab775fdd4ac364388e46179d9ee550/docs/cloud-integration.md). 
 
-To solve the problem of left behind partial results on job failures and other performance issues, Databricks implemented their own transactional write protocol.
+To solve the problem of left behind partial results on job failures and performance issues, Databricks implemented their own transactional write protocol.
 
-You can check all the problems with Spark's default commit protocol and the details behind Databrick's custom implementation in [Transactional I:O on Cloud Storage in Databricks](https://www.youtube.com/watch?v=w1_aOPj5ILw) talk by Eric Liang and [Transactional Writes to Cloud Storage on Databricks](https://databricks.com/blog/2017/05/31/transactional-writes-cloud-storage.html) blog post.
+You can check all the problems with Spark's default *commit protocol* and the details behind Databrick's custom implementation in [Transactional I:O on Cloud Storage in Databricks](https://www.youtube.com/watch?v=w1_aOPj5ILw) talk by Eric Liang and [Transactional Writes to Cloud Storage on Databricks](https://databricks.com/blog/2017/05/31/transactional-writes-cloud-storage.html) blog post.
 
 Let's take a look with examples how transactional writes work on Databricks, implemented with the *commit procotol* below:
 
@@ -103,8 +108,12 @@ To clean up partition files of uncommitted transactions, there is [VACUUM](https
 
 [Apache Spark's _SUCESS anatomy](https://www.waitingforcode.com/apache-spark-sql/apache-spark-success-anatomy/read)
 
+[What is the difference between mapreduce.fileoutputcommitter.algorithm.version=1 and 2](http://www.openkb.info/2019/04/what-is-difference-between.html)
+
 [Transactional I:O on Cloud Storage in Databricks - Eric Liang](https://www.youtube.com/watch?v=w1_aOPj5ILw)
 
 [Transactional Writes to Cloud Storage on Databricks](https://databricks.com/blog/2017/05/31/transactional-writes-cloud-storage.html)
 
 [Notebook - Testing Transactional Writes](https://docs.databricks.com/_static/notebooks/dbio-transactional-commit.html)
+
+[Spark 2.0.0 cluster takes a long time to append data](https://kb.databricks.com/data/append-slow-with-spark-2.0.0.html)
