@@ -1,13 +1,15 @@
 ---
 title:  "Transactional Writes in Spark"
-excerpt: "Covering Spark's default and Databrick's Transactional Write strategies, used to write the result of a job to a destination and guarantee no partial results are left behind in case of failure."
+excerpt: "Covering Spark's default and Databrick's Transactional Write strategies used to write the result of a job to a destination and guarantee no partial results are left behind in case of failure."
 classes: wide
 categories: [spark]
 toc: true
 author_profile: true
 ---
 
-If you write a `Dataframe` to cloud storage (Amazon S3 or Azure Storage) on Databricks platform, you will notice `_SUCCESS` , `_started_<id>` and `_commited_<id>` files within the destination directory. In this post I'll explain why these files are created, what they represent, what is a transactional write protocol and why Databricks has its own.
+{% include figure image_path="/assets/images/spark/transactional_writes/intro.png" %}
+
+If you write a `Dataframe` to cloud storage (Amazon S3 or Azure Storage) on Databricks platform, you will notice `_SUCCESS` , `_started_<id>` and `_commited_<id>` files within the destination directory. In this post I'll cover why these files are created, what they represent, what is a transactional write *commit protocol* and different implementations of it: Hadoop Commit V1, Hadoop Commit V2 and Databrick's DBIO Transactional Commit.
 
 ## Transactional Writes
 
@@ -30,7 +32,7 @@ Spark [supports](https://issues.apache.org/jira/browse/SPARK-20107) *commit prot
 
 As we previously saw, Spark's default *commit protocol* version 1 should be used for safety (no partial results) and version 2 for performance. However, if we opt for data safety version 1 is not suitable for cloud native setups, e.g writing to Amazon S3, due to differences cloud object stores have from real filesystems, as explained in [Spark's cloud integration guide](https://github.com/apache/spark/blob/32a0451376ab775fdd4ac364388e46179d9ee550/docs/cloud-integration.md). 
 
-To solve the problem of left behind partial results on job failures and performance issues, Databricks implemented their own transactional write protocol.
+To solve the problem of left behind partial results on job failures and performance issues, Databricks implemented their own transactional write protocol called *DBIO Transactional Commit*.
 
 You can check all the problems with Spark's default *commit protocol* and the details behind Databrick's custom implementation in [Transactional I:O on Cloud Storage in Databricks](https://www.youtube.com/watch?v=w1_aOPj5ILw) talk by Eric Liang and [Transactional Writes to Cloud Storage on Databricks](https://databricks.com/blog/2017/05/31/transactional-writes-cloud-storage.html) blog post.
 
