@@ -5,7 +5,6 @@ classes: wide
 categories: [streamsets]
 toc: true
 tags: [tutorial]
-author_profile: true
 ---
 
 This post presents a step-by-step guide on how to implement custom Spark Evaluators in StreamSets.

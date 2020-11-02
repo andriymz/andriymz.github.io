@@ -5,7 +5,6 @@ classes: wide
 categories: [streamsets]
 toc: true
 tags: [cdc]
-author_profile: true
 ---
 
 This post presents a step-by-step guide on how to process [change data capture (CDC)](https://en.wikipedia.org/wiki/Change_data_capture) events with StreamSets, using it's [Oracle CDC Client](https://streamsets.com/documentation/datacollector/latest/help/datacollector/UserGuide/Origins/OracleCDC.html) and delivering to CRUD and non-CRUD destinations.

@@ -5,7 +5,6 @@ classes: wide
 categories: [spark]
 toc: true
 tags: [kerberos, hbase]
-author_profile: true
 ---
 
 Spark uses delegation tokens in all its communications with secure services (e.g. HDFS, Hive, HBase), however there is a problem in refreshing HBase tokens in versions 2.0.x, 2.1.x and 2.2.x of Spark in `yarn-client` mode, making any long-running applications unable to access HBase after a period of 7 days, default period during which the initially obtained authentication token can be renewed. In this blog post I'm addressing this issue by explaining the root cause of this problem and presenting my workaround solution.

@@ -3,7 +3,6 @@ title:  "Solving Slow Excel Generation using Apache POI"
 excerpt: "Comparing standard and memory optimized Excel generations using Apache POI library"
 category: [misc]
 classes: wide
-author_profile: true
 ---
 
 [Apache POI](https://poi.apache.org/) is a _Java APIs for manipulating various file formats based upon the Office Open XML standards (OOXML) and Microsoft's OLE 2 Compound Document format (OLE2). In short, you can read and write MS Excel files using Java. In addition, you can read and write MS Word and MS PowerPoint files using Java._

@@ -4,7 +4,6 @@ excerpt: "Covering Spark's default and Databrick's Transactional Write strategie
 classes: wide
 categories: [spark]
 toc: true
-author_profile: true
 ---
 
 {% include figure image_path="/assets/images/spark/transactional_writes/intro.png" %}

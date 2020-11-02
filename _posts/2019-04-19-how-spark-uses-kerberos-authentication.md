@@ -5,7 +5,6 @@ classes: wide
 categories: [spark]
 toc: true
 tags: [kerberos, hadoop, security]
-author_profile: true
 ---
 
 Have you ever wondered how Spark uses Kerberos authentication? How and when the provided through the spark-submit `--principal` and `--keytab` options are used? This post answers those questions and explains all the magic that happens "under the hood" when you submit your long-running applications.

@@ -6,7 +6,6 @@ toc: true
 categories: [kerberos]
 toc: true
 tags: [spnego]
-author_profile: true
 ---
 
 If you are using the [HttpClient](https://hc.apache.org/httpcomponents-client-4.5.x/) library of version 4.5.2 to make HTTP requests to a backend server with SSL and SPNego, and the requests are unexpectedly failing with the errors below, you may be dealing with a known bug. 
