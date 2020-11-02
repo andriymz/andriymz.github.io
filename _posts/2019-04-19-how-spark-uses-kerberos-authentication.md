@@ -65,7 +65,7 @@ The **renewal logic** consists in:
     * "-" delimiter
     * incremented with each renewal number
     
-    E.g. `/user/eventarch/.sparkStaging/application_1547546932241_0041/credentials-fe545216-4a64-47a4-b787-6469ead7ed93-1547576953288-1`
+    E.g. `/user/appname/.sparkStaging/application_1547546932241_0041/credentials-fe545216-4a64-47a4-b787-6469ead7ed93-1547576953288-1`
 6. Delete credentials files stored in HDFS older than X days, retention period stored in `spark.yarn.credentials.file.retention.days` SparkConf value;
 7. Run the **renewal scheduling logic** with the updated `timeOfNextRenewal` value to repeat the cycle.
 

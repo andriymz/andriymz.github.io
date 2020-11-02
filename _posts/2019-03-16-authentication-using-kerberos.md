@@ -49,7 +49,7 @@ JaasSample {
   useKeyTab=true
   doNotPrompt=true
   keyTab="/tmp/path/sparker.keytab"
-  principal="sparker@XPAND.COM";
+  principal="sparker@DOMAIN";
 };
 ```
 
@@ -134,20 +134,20 @@ A developer can completely handle all the Kerberos authentication options using 
 To test the authentication using an existing TGT you need to first request and store it in a custom cache location, using the `kinit` command below:
 
 ```java
-[andriymz@fedora27 ~]$ kinit xpand@XPAND.COM -kt xpand.keytab -c /tmp/cache
+[andriymz@fedora27 ~]$ kinit user@DOMAIN -kt andriy.keytab -c /tmp/cache
 [andriymz@fedora27 ~]$ klist -c /tmp/cache
 Ticket cache: FILE:/tmp/cache
-Default principal: xpand@XPAND.COM
+Default principal: user@DOMAIN
 
 Valid starting       Expires              Service principal
-24-03-2019 18:04:30  25-03-2019 18:04:30  krbtgt/XPAND.COM@XPAND.COM
+24-03-2019 18:04:30  25-03-2019 18:04:30  krbtgt/DOMAIN@DOMAIN
         renew until 31-03-2019 19:04:30 
 ```
 
 Then, in your application you need to create an instance of UserGroupInformation class by calling its `getUGIFromTicketCache` method, which expects the TGT cache location and its Kerberos principal as parameters.
 
 ```java
-UserGroupInformation ugi = UserGroupInformation.getUGIFromTicketCache("/tmp/cache", "xpand@XPAND.COM");
+UserGroupInformation ugi = UserGroupInformation.getUGIFromTicketCache("/tmp/cache", "user@DOMAIN");
 ```
 UserGroupInformation instance contains the authenticated Subject and User objects, a boolean field indicating if the instance was created using a keytab and another boolean set to true if the instance contains any Kerberos ticket.
 
@@ -167,7 +167,7 @@ The UserGroupInformation instance is then used to access the secured Hadoop serv
 
 ```java
 Configuration conf = new Configuration();
-conf.set("fs.defaultFS", "hdfs://xp-sonae1.xpand.com:8020");
+conf.set("fs.defaultFS", "hdfs://host:8020");
 conf.set("hadoop.security.authentication", "kerberos");
 
 UserGroupInformation.setConfiguration(conf);
@@ -176,7 +176,7 @@ FileStatus[] fsStatus = ugi.doAs(new PrivilegedExceptionAction<FileStatus[]>() {
     @Override
     public FileStatus[] run() throws Exception {
         FileSystem fs = FileSystem.get(conf);
-        return fs.listStatus(new Path("/user/xpand"));
+        return fs.listStatus(new Path("/user/andriy"));
     }
 });
 
@@ -194,7 +194,7 @@ There are two methods allowing to login using a keytab: `loginUserFromKeytab` an
 The example below shows how both methods can be used. Note that this allows us to have multiple logged-in users within the same JVM.
 
 ```java
-UserGroupInformation.loginUserFromKeytab("bob@XPAND.COM", "/home/bob/bob.keytab");
+UserGroupInformation.loginUserFromKeytab("bob@DOMAIN", "/home/bob/bob.keytab");
 UserGroupInformation ugi = UserGroupInformation.getCurrentUser();
 
 ugi = doAs(subject, new PrivilegedExceptionAction<Object>() {
@@ -204,7 +204,7 @@ ugi = doAs(subject, new PrivilegedExceptionAction<Object>() {
     }
 });
 
-UserGroupInformation tomUgi = UserGroupInformation.loginUserFromKeytabAndReturnUGI("tom@XPAND.COM", "/home/tom/tom.keytab");
+UserGroupInformation tomUgi = UserGroupInformation.loginUserFromKeytabAndReturnUGI("tom@DOMAIN", "/home/tom/tom.keytab");
 tomUgi = doAs(subject, new PrivilegedExceptionAction<Object>() {
     @Override
     public Object run() throws Exception {
@@ -284,12 +284,12 @@ HDFS Delegation Token can be obtained by calling the [FileSystem](https://hadoop
 
 ```java
 Configuration conf = new Configuration();
-conf.set("fs.defaultFS","hdfs://xp-sonae1.xpand.com:8020");
+conf.set("fs.defaultFS","hdfs://host:8020");
 conf.set("hadoop.security.authentication", "kerberos");
 
 UserGroupInformation.setConfiguration(conf);
 
-UserGroupInformation ugi = UserGroupInformation.loginUserFromKeytabAndReturnUGI("xpand@XPAND.COM", "/tmp/xpand.keytab");
+UserGroupInformation ugi = UserGroupInformation.loginUserFromKeytabAndReturnUGI("user@DOMAIN", "/tmp/andriy.keytab");
 
 // Credentials object to be populated with Delegation Tokens
 Credentials credentials = new Credentials();
@@ -340,12 +340,12 @@ You can also store the Credentials to HDFS by running the following code, of cou
 
 ```java
 Configuration conf = new Configuration();
-conf.set("fs.defaultFS","hdfs://xp-sonae1.xpand.com:8020");
+conf.set("fs.defaultFS","hdfs://host:8020");
 conf.set("hadoop.security.authentication", "kerberos");
 
 ...
 
-Path credentialsCachePath = new Path("/user/xpand/credentials_cache");
+Path credentialsCachePath = new Path("/user/andriy/credentials_cache");
 
 credentials.writeTokenStorageFile(credentialsCachePath, conf);
 
@@ -382,7 +382,7 @@ FileStatus[] fsStatus = newUgi.doAs(new PrivilegedExceptionAction<FileStatus[]>(
     @Override
     public FileStatus[] run() throws Exception {
         FileSystem fs = FileSystem.get(conf);
-        return fs.listStatus(new Path("/user/xpand"));
+        return fs.listStatus(new Path("/user/andriy"));
     }
 });
 
@@ -391,8 +391,8 @@ for(FileStatus fStat: fsStatus){
 } 
 ```
 
-In HDFS Audit logs you can confirm that the originated *listStatus* request was performed under *xpand@XPAND.COM* principal and *TOKEN* authentication method.
+In HDFS Audit logs you can confirm that the originated *listStatus* request was performed under *user@DOMAIN* principal and *TOKEN* authentication method.
 
 ```text
-INFO FSNamesystem.audit: allowed=true   ugi=xpand@XPAND.COM (auth:TOKEN)        ip=/148.63.81.239       cmd=listStatus  src=/user/xpand dst=null        perm=null       proto=rpc
+INFO FSNamesystem.audit: allowed=true   ugi=user@DOMAIN (auth:TOKEN)        ip=/148.63.81.239       cmd=listStatus  src=/user/andriy dst=null        perm=null       proto=rpc
 ```

@@ -18,10 +18,10 @@ To fully understand how Spark uses delegation tokens for secure communication in
 Delegation tokens are requested initially by the Client before submitting the application to YARN. Since in `yarn-client` deploy mode the Client and the Driver run in the same JVM container, you can check the tokens your application requests in the Driver's logs:
 
 ```text
-2019-01-19 08:45:30,761 INFO org.apache.spark.deploy.yarn.security.HDFSCredentialProvider: getting token for namenode: hdfs://xp-sonae1.xpand.com:8020/user/eventarch
-2019-01-19 08:45:30,854 INFO org.apache.hadoop.hdfs.DFSClient: Created token for eventarch: HDFS_DELEGATION_TOKEN owner=eventarch/xp-sonae3.xpand.com@XPAND.COM, renewer=yarn, realUser=, issueDate=1547905530830,
+2019-01-19 08:45:30,761 INFO org.apache.spark.deploy.yarn.security.HDFSCredentialProvider: getting token for namenode: hdfs://host:8020/user/appname
+2019-01-19 08:45:30,854 INFO org.apache.hadoop.hdfs.DFSClient: Created token for appname: HDFS_DELEGATION_TOKEN owner=appname/host3@DOMAIN, renewer=yarn, realUser=, issueDate=1547905530830,
 maxDate=1547905830830, sequenceNumber=7796, masterKeyId=394 on 10.0.0.4:8020
-2019-01-19 08:45:30,862 INFO org.apache.hadoop.hdfs.DFSClient: Created token for eventarch: HDFS_DELEGATION_TOKEN owner=eventarch/xp-sonae3.xpand.com@XPAND.COM, renewer=eventarch, realUser=, issueDate=1547905530
+2019-01-19 08:45:30,862 INFO org.apache.hadoop.hdfs.DFSClient: Created token for appname: HDFS_DELEGATION_TOKEN owner=appname/host3@DOMAIN, renewer=appname, realUser=, issueDate=1547905530
 878, maxDate=1547905830878, sequenceNumber=7797, masterKeyId=394 on 10.0.0.4:8020
  
 2019-01-19 08:45:32,929 INFO org.apache.spark.deploy.yarn.security.HBaseCredentialProvider: Get token from HBase: Kind: HBASE_AUTH_TOKEN, Service: 410baf3c-6ca8-4814-b2af-ad67caf17e6f, Ident: (org.apache.hadoop.
@@ -41,20 +41,20 @@ Before requesting the tokens, Application Master logs into the KDC with the cred
 
 ```text
 2019-01-19 08:45:33,998 INFO org.apache.spark.deploy.yarn.Client: To enable the Application Master to login from keytab, credentials are being copied over to the Application Master via the YARN Secure Distributed Cache.
-2019-01-19 08:45:34,001 INFO org.apache.spark.deploy.yarn.Client: Uploading resource file:/var/run/cloudera-scm-agent/process/1649-event_architecture-EVENT_ARCHITECTURE_DISPATCHER_RFID/event_architecture.keytab -> hdfs://xp-sonae1.xpand.com:8020/user/eventarch/.sparkStaging/application_1547896472312_0007/event_architecture.keytab
+2019-01-19 08:45:34,001 INFO org.apache.spark.deploy.yarn.Client: Uploading resource file:/var/run/cloudera-scm-agent/process/1649-appname-SERVICE/appname.keytab -> hdfs://host:8020/user/appname/.sparkStaging/application_1547896472312_0007/appname.keytab
 ```
 
 If you submit a Spark 2 application in `yarn-client` mode, you can check through its logs that the Application Master only requests delegation tokens for HDFS and Hive services (no token for HBase):
 
 ```text
-2019/01/15 13:25:12 [INFO] [security.AMCredentialRenewer] Attempting to login to KDC using principal: eventarch/xp-sonae3.xpand.com@XPAND.COM
+2019/01/15 13:25:12 [INFO] [security.AMCredentialRenewer] Attempting to login to KDC using principal: appname/host3@DOMAIN
 2019/01/15 13:25:12 [INFO] [security.AMCredentialRenewer] Successfully logged into KDC.
  
-2019/01/15 13:25:12 [INFO] [security.HDFSCredentialProvider] getting token for namenode: hdfs://xp-sonae1.xpand.com:8020/user/eventarch
-2019/01/15 13:25:12 [INFO] [hdfs.DFSClient] Created token for eventarch: HDFS_DELEGATION_TOKEN owner=eventarch/xp-sonae3.xpand.com@XPAND.COM, renewer=yarn, realUser=, issueDate=1547576712738, maxDate=1547577012738, sequenceNumber=6476, masterKeyId=382 on 10.0.0.4:8020
-2019/01/15 13:25:12 [INFO] [hdfs.DFSClient] Created token for eventarch: HDFS_DELEGATION_TOKEN owner=eventarch/xp-sonae3.xpand.com@XPAND.COM, renewer=eventarch, realUser=, issueDate=1547576712767, maxDate=1547577012767, sequenceNumber=6477, masterKeyId=382 on 10.0.0.4:8020
+2019/01/15 13:25:12 [INFO] [security.HDFSCredentialProvider] getting token for namenode: hdfs://host:8020/user/appname
+2019/01/15 13:25:12 [INFO] [hdfs.DFSClient] Created token for appname: HDFS_DELEGATION_TOKEN owner=appname/host3@DOMAIN, renewer=yarn, realUser=, issueDate=1547576712738, maxDate=1547577012738, sequenceNumber=6476, masterKeyId=382 on 10.0.0.4:8020
+2019/01/15 13:25:12 [INFO] [hdfs.DFSClient] Created token for appname: HDFS_DELEGATION_TOKEN owner=appname/host3@DOMAIN, renewer=appname, realUser=, issueDate=1547576712767, maxDate=1547577012767, sequenceNumber=6477, masterKeyId=382 on 10.0.0.4:8020
  
-2019/01/15 13:25:14 [INFO] [hive.metastore] Trying to connect to metastore with URI thrift://xp-sonae2.xpand.com:9083
+2019/01/15 13:25:14 [INFO] [hive.metastore] Trying to connect to metastore with URI thrift://host2:9083
 2019/01/15 13:25:14 [INFO] [hive.metastore] Opened a connection to metastore, current connections: 1
 2019/01/15 13:25:14 [INFO] [hive.metastore] Connected to metastore.
 2019/01/15 13:25:15 [INFO] [metadata.Hive] Registering function mymyupper org.hue.udf.MyUpper
@@ -65,8 +65,8 @@ If you submit a Spark 2 application in `yarn-client` mode, you can check through
 Requested delegation tokens are written to HDFS, making them accessible by the Driver and Executor instances:
 
 ```text
-2019/01/15 13:25:15 [INFO] [security.AMCredentialRenewer] Writing out delegation tokens to hdfs://xp-sonae1.xpand.com:8020/user/eventarch/.sparkStaging/application_1547546932241_0041/credentials-fe545216-4a64-47a4-b787-6469ead7ed93-1547576953288-1.tmp
-2019/01/15 13:25:15 [INFO] [security.AMCredentialRenewer] Delegation Tokens written out successfully. Renaming file to hdfs://xp-sonae1.xpand.com:8020/user/eventarch/.sparkStaging/application_1547546932241_0041/credentials-fe545216-4a64-47a4-b787-6469ead7ed93-1547576953288-1
+2019/01/15 13:25:15 [INFO] [security.AMCredentialRenewer] Writing out delegation tokens to hdfs://host:8020/user/appname/.sparkStaging/application_1547546932241_0041/credentials-fe545216-4a64-47a4-b787-6469ead7ed93-1547576953288-1.tmp
+2019/01/15 13:25:15 [INFO] [security.AMCredentialRenewer] Delegation Tokens written out successfully. Renaming file to hdfs://host:8020/user/appname/.sparkStaging/application_1547546932241_0041/credentials-fe545216-4a64-47a4-b787-6469ead7ed93-1547576953288-1
 2019/01/15 13:25:15 [INFO] [security.AMCredentialRenewer] Delegation token file rename complete.
 2019/01/15 13:25:15 [INFO] [security.AMCredentialRenewer] Scheduling login from keytab in 222651 millis.
 ```
@@ -97,10 +97,10 @@ To overcome this problem I've found a way to manually request the HBase authenti
 
 **Steps**
 
-1. Read the credentials file from hdfs://xp-sonae1.xpand.com:8020/user/eventarch/.sparkStaging/application_1547896472312_0015/**credentials-c820302c-bc91-4a14-84a0-f1b92caf7a4c-1547921890628-1**
+1. Read the credentials file from hdfs://host:8020/user/appname/.sparkStaging/application_1547896472312_0015/**credentials-c820302c-bc91-4a14-84a0-f1b92caf7a4c-1547921890628-1**
 2. Request the HBase token using the [TokenUtil](https://github.com/apache/hbase/blob/master/hbase-server/src/main/java/org/apache/hadoop/hbase/security/token/TokenUtil.java) class;
 3. Replace the HBase token in the unserialized [Credentials](https://hadoop.apache.org/docs/r2.8.3/api/org/apache/hadoop/security/Credentials.html) instance;
-4. Store the updated Credentials instance into HDFS under hdfs://xp-sonae1.xpand.com:8020/user/eventarch/.sparkStaging/application_1547896472312_0015/**credentials-c820302c-bc91-4a14-84a0-f1b92caf7a4c-1547921890628-10001**
+4. Store the updated Credentials instance into HDFS under hdfs://host:8020/user/appname/.sparkStaging/application_1547896472312_0015/**credentials-c820302c-bc91-4a14-84a0-f1b92caf7a4c-1547921890628-10001**
 
 
 Application Master renews the delegation tokens every 75% of `Min(service provider token validity time)`, but the update from the HDFS by the Driver and Executor instances occurs every 80% of this time. This means we have a 5% time window to read the fresh delegation tokens the Application Master stored in HDFS and apply our logic.
@@ -113,43 +113,43 @@ To apply this workaround on your project you just need to include the provided `
 You can check the [CredentialUpdater](https://github.com/cloudera/spark/blob/spark2-2.1.0-cloudera1/yarn/src/main/scala/org/apache/spark/deploy/yarn/security/CredentialUpdater.scala)'s logs to confirm that the updated credentials file is read from the HDFS in the Driver and Executor logs.
 
 ```text
-2019-01-19 13:14:24,498 INFO org.apache.spark.deploy.yarn.security.CredentialUpdater: Reading new credentials from hdfs://xp-sonae1.xpand.com:8020/user/eventarch/.sparkStaging/application_1547896472312_0015/credentials-c820302c-bc91-4a14-84a0-f1b92caf7a4c-1547921890628-100001
-2019-01-19 13:18:10,633 INFO org.apache.spark.deploy.yarn.security.CredentialUpdater: Reading new credentials from hdfs://xp-sonae1.xpand.com:8020/user/eventarch/.sparkStaging/application_1547896472312_0015/credentials-c820302c-bc91-4a14-84a0-f1b92caf7a4c-1547922115956-100002
-2019-01-19 13:21:55,960 INFO org.apache.spark.deploy.yarn.security.CredentialUpdater: Reading new credentials from hdfs://xp-sonae1.xpand.com:8020/user/eventarch/.sparkStaging/application_1547896472312_0015/credentials-c820302c-bc91-4a14-84a0-f1b92caf7a4c-1547922341219-100003
-2019-01-19 13:25:41,223 INFO org.apache.spark.deploy.yarn.security.CredentialUpdater: Reading new credentials from hdfs://xp-sonae1.xpand.com:8020/user/eventarch/.sparkStaging/application_1547896472312_0015/credentials-c820302c-bc91-4a14-84a0-f1b92caf7a4c-1547922566404-100004
-2019-01-19 13:29:26,408 INFO org.apache.spark.deploy.yarn.security.CredentialUpdater: Reading new credentials from hdfs://xp-sonae1.xpand.com:8020/user/eventarch/.sparkStaging/application_1547896472312_0015/credentials-c820302c-bc91-4a14-84a0-f1b92caf7a4c-1547922791699-100005
-2019-01-19 13:33:11,702 INFO org.apache.spark.deploy.yarn.security.CredentialUpdater: Reading new credentials from hdfs://xp-sonae1.xpand.com:8020/user/eventarch/.sparkStaging/application_1547896472312_0015/credentials-c820302c-bc91-4a14-84a0-f1b92caf7a4c-1547923016903-100006
-2019-01-19 13:36:56,907 INFO org.apache.spark.deploy.yarn.security.CredentialUpdater: Reading new credentials from hdfs://xp-sonae1.xpand.com:8020/user/eventarch/.sparkStaging/application_1547896472312_0015/credentials-c820302c-bc91-4a14-84a0-f1b92caf7a4c-1547923242083-100007
-2019-01-19 13:40:42,087 INFO org.apache.spark.deploy.yarn.security.CredentialUpdater: Reading new credentials from hdfs://xp-sonae1.xpand.com:8020/user/eventarch/.sparkStaging/application_1547896472312_0015/credentials-c820302c-bc91-4a14-84a0-f1b92caf7a4c-1547923467255-100008
-2019-01-19 13:44:27,258 INFO org.apache.spark.deploy.yarn.security.CredentialUpdater: Reading new credentials from hdfs://xp-sonae1.xpand.com:8020/user/eventarch/.sparkStaging/application_1547896472312_0015/credentials-c820302c-bc91-4a14-84a0-f1b92caf7a4c-1547923692432-100009
-2019-01-19 13:48:12,436 INFO org.apache.spark.deploy.yarn.security.CredentialUpdater: Reading new credentials from hdfs://xp-sonae1.xpand.com:8020/user/eventarch/.sparkStaging/application_1547896472312_0015/credentials-c820302c-bc91-4a14-84a0-f1b92caf7a4c-1547923917603-100010
+2019-01-19 13:14:24,498 INFO org.apache.spark.deploy.yarn.security.CredentialUpdater: Reading new credentials from hdfs://host:8020/user/appname/.sparkStaging/application_1547896472312_0015/credentials-c820302c-bc91-4a14-84a0-f1b92caf7a4c-1547921890628-100001
+2019-01-19 13:18:10,633 INFO org.apache.spark.deploy.yarn.security.CredentialUpdater: Reading new credentials from hdfs://host:8020/user/appname/.sparkStaging/application_1547896472312_0015/credentials-c820302c-bc91-4a14-84a0-f1b92caf7a4c-1547922115956-100002
+2019-01-19 13:21:55,960 INFO org.apache.spark.deploy.yarn.security.CredentialUpdater: Reading new credentials from hdfs://host:8020/user/appname/.sparkStaging/application_1547896472312_0015/credentials-c820302c-bc91-4a14-84a0-f1b92caf7a4c-1547922341219-100003
+2019-01-19 13:25:41,223 INFO org.apache.spark.deploy.yarn.security.CredentialUpdater: Reading new credentials from hdfs://host:8020/user/appname/.sparkStaging/application_1547896472312_0015/credentials-c820302c-bc91-4a14-84a0-f1b92caf7a4c-1547922566404-100004
+2019-01-19 13:29:26,408 INFO org.apache.spark.deploy.yarn.security.CredentialUpdater: Reading new credentials from hdfs://host:8020/user/appname/.sparkStaging/application_1547896472312_0015/credentials-c820302c-bc91-4a14-84a0-f1b92caf7a4c-1547922791699-100005
+2019-01-19 13:33:11,702 INFO org.apache.spark.deploy.yarn.security.CredentialUpdater: Reading new credentials from hdfs://host:8020/user/appname/.sparkStaging/application_1547896472312_0015/credentials-c820302c-bc91-4a14-84a0-f1b92caf7a4c-1547923016903-100006
+2019-01-19 13:36:56,907 INFO org.apache.spark.deploy.yarn.security.CredentialUpdater: Reading new credentials from hdfs://host:8020/user/appname/.sparkStaging/application_1547896472312_0015/credentials-c820302c-bc91-4a14-84a0-f1b92caf7a4c-1547923242083-100007
+2019-01-19 13:40:42,087 INFO org.apache.spark.deploy.yarn.security.CredentialUpdater: Reading new credentials from hdfs://host:8020/user/appname/.sparkStaging/application_1547896472312_0015/credentials-c820302c-bc91-4a14-84a0-f1b92caf7a4c-1547923467255-100008
+2019-01-19 13:44:27,258 INFO org.apache.spark.deploy.yarn.security.CredentialUpdater: Reading new credentials from hdfs://host:8020/user/appname/.sparkStaging/application_1547896472312_0015/credentials-c820302c-bc91-4a14-84a0-f1b92caf7a4c-1547923692432-100009
+2019-01-19 13:48:12,436 INFO org.apache.spark.deploy.yarn.security.CredentialUpdater: Reading new credentials from hdfs://host:8020/user/appname/.sparkStaging/application_1547896472312_0015/credentials-c820302c-bc91-4a14-84a0-f1b92caf7a4c-1547923917603-100010
 ```
 
 Full update iteration retrieved from the Driver's looks like this:
 
 ```text
 2019-01-19 13:10:41,744 INFO org.apache.spark.deploy.yarn.security.CredentialUpdater: Scheduling credentials refresh from HDFS in 222744 ms.
-2019-01-19 13:10:45,950 INFO com.xpandit.bdu.sonae.ea.commons.spark.ManualDelegationTokenRenewal: Scheduling credential merge in 214167ms
-2019-01-19 13:14:20,120 INFO com.xpandit.bdu.sonae.ea.commons.spark.ManualDelegationTokenRenewal: Merging credentials
-2019-01-19 13:14:20,140 INFO com.xpandit.bdu.sonae.ea.commons.spark.ManualDelegationTokenRenewal: Reading new credentials from hdfs://xp-sonae1.xpand.com:8020/user/eventarch/.sparkStaging/application_1547896472312_0015/credentials-c820302c-bc91-4a14-84a0-f1b92caf7a4c-1547921890628-1
-2019-01-19 13:14:20,166 INFO com.xpandit.bdu.sonae.ea.commons.spark.ManualDelegationTokenRenewal: Logged as: eventarch/xp-sonae3.xpand.com@XPAND.COM (auth:KERBEROS)
-2019-01-19 13:14:20,259 INFO com.xpandit.bdu.sonae.ea.commons.spark.ManualDelegationTokenRenewal: Got HBase token: org.apache.hadoop.hbase.security.token.AuthenticationTokenIdentifier@44
-2019-01-19 13:14:20,262 INFO com.xpandit.bdu.sonae.ea.commons.spark.ManualDelegationTokenRenewal: Writing out delegation tokens to hdfs://xp-sonae1.xpand.com:8020/user/eventarch/.sparkStaging/application_1547896472312_0015/credentials-c820302c-bc91-4a14-84a0-f1b92caf7a4c-1547921890628-100001.tmp
-2019-01-19 13:14:20,293 INFO com.xpandit.bdu.sonae.ea.commons.spark.ManualDelegationTokenRenewal: Delegation Tokens written out successfully. Renaming file to hdfs://xp-sonae1.xpand.com:8020/user/eventarch/.sparkStaging/application_1547896472312_0015/credentials-c820302c-bc91-4a14-84a0-f1b92caf7a4c-1547921890628-100001
-2019-01-19 13:14:20,305 INFO com.xpandit.bdu.sonae.ea.commons.spark.ManualDelegationTokenRenewal: Delegation token file rename complete.
-2019-01-19 13:14:20,306 INFO com.xpandit.bdu.sonae.ea.commons.spark.ManualDelegationTokenRenewal: Scheduling credential merge in 225716ms
-2019-01-19 13:14:24,498 INFO org.apache.spark.deploy.yarn.security.CredentialUpdater: Reading new credentials from hdfs://xp-sonae1.xpand.com:8020/user/eventarch/.sparkStaging/application_1547896472312_0015/credentials-c820302c-bc91-4a14-84a0-f1b92caf7a4c-1547921890628-100001
+2019-01-19 13:10:45,950 INFO com.example.spark.ManualDelegationTokenRenewal: Scheduling credential merge in 214167ms
+2019-01-19 13:14:20,120 INFO com.example.spark.ManualDelegationTokenRenewal: Merging credentials
+2019-01-19 13:14:20,140 INFO com.example.spark.ManualDelegationTokenRenewal: Reading new credentials from hdfs://host:8020/user/appname/.sparkStaging/application_1547896472312_0015/credentials-c820302c-bc91-4a14-84a0-f1b92caf7a4c-1547921890628-1
+2019-01-19 13:14:20,166 INFO com.example.spark.ManualDelegationTokenRenewal: Logged as: appname/host3@DOMAIN (auth:KERBEROS)
+2019-01-19 13:14:20,259 INFO com.example.spark.ManualDelegationTokenRenewal: Got HBase token: org.apache.hadoop.hbase.security.token.AuthenticationTokenIdentifier@44
+2019-01-19 13:14:20,262 INFO com.example.spark.ManualDelegationTokenRenewal: Writing out delegation tokens to hdfs://host:8020/user/appname/.sparkStaging/application_1547896472312_0015/credentials-c820302c-bc91-4a14-84a0-f1b92caf7a4c-1547921890628-100001.tmp
+2019-01-19 13:14:20,293 INFO com.example.spark.ManualDelegationTokenRenewal: Delegation Tokens written out successfully. Renaming file to hdfs://host:8020/user/appname/.sparkStaging/application_1547896472312_0015/credentials-c820302c-bc91-4a14-84a0-f1b92caf7a4c-1547921890628-100001
+2019-01-19 13:14:20,305 INFO com.example.spark.ManualDelegationTokenRenewal: Delegation token file rename complete.
+2019-01-19 13:14:20,306 INFO com.example.spark.ManualDelegationTokenRenewal: Scheduling credential merge in 225716ms
+2019-01-19 13:14:24,498 INFO org.apache.spark.deploy.yarn.security.CredentialUpdater: Reading new credentials from hdfs://host:8020/user/appname/.sparkStaging/application_1547896472312_0015/credentials-c820302c-bc91-4a14-84a0-f1b92caf7a4c-1547921890628-100001
 ``` 
 
 **ManualDelegationTokenRenewal class**
 
 ```scala
-package com.xpandit.bdu.sonae.ea.commons.spark
+package com.example.spark
  
 import java.security.PrivilegedExceptionAction
 import java.util.concurrent.{Executors, TimeUnit}
  
-import com.xpandit.bdu.commons.core.Loggable
+import com.example.utils.Loggable
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.hadoop.hbase.HBaseConfiguration
