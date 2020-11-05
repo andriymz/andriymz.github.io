@@ -16,6 +16,8 @@ nav_id:
         url: /categories/certifications
       - title: "Spark"
         url: /categories/spark/
+      - title: "Flink"
+        url: /categories/flink/
       - title: "StreamSets"
         url: /categories/streamsets
 
