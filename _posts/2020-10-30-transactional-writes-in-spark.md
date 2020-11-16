@@ -8,17 +8,18 @@ toc: true
 
 {% include figure image_path="/assets/images/spark/transactional_writes/intro.png" %}
 
-If you write a `Dataframe` to cloud storage (Amazon S3 or Azure Storage) on Databricks platform, you will notice `_SUCCESS` , `_started_<id>` and `_commited_<id>` files within the destination directory. In this post I'll cover why these files are created, what they represent, what is a transactional write *commit protocol* and different implementations of it: Hadoop Commit V1, Hadoop Commit V2 and Databrick's DBIO Transactional Commit.
+Since Spark executes an application in a distributed fashion, it is impossible to atomically write the result of the job. For example, when you write a `Dataframe`, the result of the operation will be a directory with multiple files in it, one per `Dataframe`'s partition (e.g `part-00001-...`). These partition files are written by multiple Executors, as a result of their partial computation, but what if one of them fails?  
+
+To overcome this Spark has a concept of *commit protocol*, a mechanism that knows how to write partial results and deal with success or failure of a write operation.
+
+In this post I'll cover three types of transactional write *commit protocols* and explain the differences between them. The protocols being addressed are _Hadoop Commit V1_, _Hadoop Commit V2_ and Databrick's _DBIO Transactional Commit_.
 
 ## Transactional Writes
 
-Because Spark executes an application in a distributed fashion, it is impossible to atomically write the result of the job. For example, when you write a `Dataframe`, the result of the operation will be a directory with multiple files in it, one per `Dataframe`'s partition (e.g `part-00001-...`). These partition files are written by multiple Executors, as a result of their partial computation, but what if one of them fails?  
-
-To overcome this Spark has a concept of *commit protocol*, a mechanism that knows how to write partial results and deal with success or failure of the write operation.
-
-The *commit protocol* can be configured with `spark.sql.sources.commitProtocolClass` and by default points to the [SQLHadoopMapReduceCommitProtocol](https://github.com/apache/spark/blob/master/sql/core/src/main/scala/org/apache/spark/sql/execution/datasources/SQLHadoopMapReduceCommitProtocol.scala) implementing class, a subclass of [HadoopMapReduceCommitProtocol](https://github.com/apache/spark/blob/master/core/src/main/scala/org/apache/spark/internal/io/HadoopMapReduceCommitProtocol.scala#L140).
+In Spark the transactional write *commit protocol* can be configured with `spark.sql.sources.commitProtocolClass`, which by default points to the [SQLHadoopMapReduceCommitProtocol](https://github.com/apache/spark/blob/master/sql/core/src/main/scala/org/apache/spark/sql/execution/datasources/SQLHadoopMapReduceCommitProtocol.scala) implementing class, a subclass of [HadoopMapReduceCommitProtocol](https://github.com/apache/spark/blob/master/core/src/main/scala/org/apache/spark/internal/io/HadoopMapReduceCommitProtocol.scala#L140).
 
 There are two versions of this commit algorithm, configured as `1` or `2` on `spark.hadoop.mapreduce.fileoutputcommitter.algorithm.version`.
+
 In version 1 Spark creates a temporary directory and writes all the staging output (task) files there. Then, at the end, when all tasks compete, Spark Driver moves those files from temporary directory to the final destination, deletes the temporary directory and creates the `_SUCCESS` file to mark the operation as successful. You can check more details of this process [here](https://www.waitingforcode.com/apache-spark-sql/apache-spark-success-anatomy/read). 
 
 The problem of version 1 is that for many output files, Driver may take a long time in the final step. Version 2 of *commit protocol* solves this slowness by writing directly the task result files to the final destination, speeding up the commit process. However, if the job is aborted it will leave behind partial task result files in the final destination. 
@@ -104,6 +105,14 @@ Since each successful transaction leaves a committed file, when reading data Spa
 
 To clean up partition files of uncommitted transactions, there is [VACUUM](https://docs.databricks.com/spark/latest/spark-sql/dbio-commit.html?_ga=2.110458629.1898107027.1604185218-1080905499.1603716625#clean-up-uncommitted-files) operation, that accepts an output path and the retention period. 
 
+
+## Conclusion
+
+Depending on your execution environment or expected behavior in case of application execution failure, different *commit protocol* should be chosen. 
+
+If your Spark application runs in Hadoop environment, you should use Spark's *Hadoop Commit* protocol, that can be of version 1 or version 2. Version 1 is slower, but guarantees that no partial files will be left after a Spark Job is aborted. Version 2 is faster, but you will end up with partial results in destination directory when performing a write operation and it fails. One of these versions should be configured depending if safety or performance is your main concern.
+
+If your Spark application runs in Databricks environment, you should definitely stick with their own *commit protocol* implementation called *DBIO Transactional Commit*, which is configured by default. This protocol offers at the same time safety (no partial/corrupt data) and performance, since it is optimized for cloud storage.
 
 ## Resources
 
