@@ -14,10 +14,12 @@ nav_id:
     children:
       - title: "Certifications"
         url: /categories/certifications
-      - title: "Spark"
-        url: /categories/spark/
       - title: "Flink"
         url: /categories/flink/
+      - title: "Kafka"
+        url: /categories/kafka/
+      - title: "Spark"
+        url: /categories/spark/
       - title: "StreamSets"
         url: /categories/streamsets
 
